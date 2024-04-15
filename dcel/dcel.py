@@ -1,5 +1,9 @@
 import math as m
 
+class Site:
+    def __init__(self):
+        self.index
+
 class Vertex:
     def __init__(self, x, y):
         self.x = x
@@ -13,6 +17,7 @@ class Half_Edge:
         self.twin = None
         self.next = None
         self.face = None
+        
 
 class Face:
     def __init__(self):
@@ -46,7 +51,8 @@ class DCEL:
         self.faces_list.append(face)
         return face
     
-    def print_dcel(self):
-
+    def print_vertices(self):
         for i in range(0, len(self.vertices_list)):
             print("v{} ({}, {})".format((i + 1), self.vertices_list[i].x, self.vertices_list[i].y, ))
+
+    
