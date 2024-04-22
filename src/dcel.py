@@ -2,10 +2,10 @@ import math as m
 from point import Point
 
 class Site:
-    def __init__(self):
-        self.index
-        self.point
-        self.face
+    def __init__(self, point, index):
+        self.index = index
+        self.point = point
+        self.face = None
 
 class Vertex:
     def __init__(self, point, index):
@@ -32,6 +32,7 @@ class DCEL:
         self.vertices_list = []
         self.half_edges_list = []
         self.faces_list = []
+        self.sites_list = []
 
     def create_vertex(self, x, y, index):
         point = Point(x, y)
@@ -43,6 +44,9 @@ class DCEL:
         # create 2 half edges
         edge = Half_Edge()
         twin_edge = Half_Edge()
+        
+        edge.face = self.create_face(1) # DELETE
+        twin_edge.face = self.create_face(1) # DELETE
 
         # set origin and destinations
         edge.origin = origin
@@ -51,11 +55,12 @@ class DCEL:
         twin_edge.destination = origin
 
         # FIX  next is not the next point, it is the next half edge for that cell
-        edge.next = destination
-        # edge.prev = 
+        edge.next = edge
+        edge.prev = edge
 
         # FIX  next is not the next point, it is the next half edge for that cell
-        twin_edge.next = origin
+        twin_edge.next = edge
+        twin_edge.prev = edge
 
         # set twins
         edge.twin = twin_edge
@@ -76,7 +81,13 @@ class DCEL:
         self.faces_list.append(face)
         return face
     
-    def print_vertices(self):
+    def create_site(self, x, y, index):
+        point = Point(x, y)
+        site = Site(point, index)
+        self.sites_list.append(site)
+        return site
+    
+    def write_vertices(self, file):
         for v in self.vertices_list:
             print("v{} ({}, {})".format(v.index, v.point.x, v.point.y), end='')
             
@@ -85,10 +96,5 @@ class DCEL:
         
             print()
 
-    def print_faces(self):
-        print()
-
-    def print_v_e_f(self):
-        print()
 
     
