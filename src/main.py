@@ -6,15 +6,20 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import random
 
 def point_converter(x, y):
     """ Convert the points given in the txt to valid points on the screen.
         Also have (0,0) be in the center
     """
-    point_range = 25 # 512 / 20 or 384 / 15
+
     x_shift = 512
-    y_shift = 384
-    return ((x * point_range) + x_shift), ((y * point_range) + y_shift)
+    y_shift = (int) (x_shift * .75)
+
+    point_range_x = 24
+    point_multiplier = (int) (x_shift / point_range_x) # 512 / 20 or 384 / 15
+
+    return ((x * point_multiplier) + x_shift), ((y * point_multiplier) + y_shift)
 
 
 def draw_line(v1, v2, color):
@@ -34,6 +39,7 @@ def draw_line(v1, v2, color):
     glVertex2f(x, y)
 
     x, y = point_converter(v2.point.x, v2.point.y)
+
     glVertex2f(x, y)
     glEnd()
 
@@ -105,30 +111,33 @@ if __name__ == '__main__':
     voronoi_dcel = dcel.DCEL()
     delaunay_dcel = dcel.DCEL()
 
-    with open(in_file_path, 'r') as sites_file:
-        for line in sites_file:
-            line = line.replace('(', '').replace(')', '').replace(',', '').split()
-            
-            for i in range(0, len(line), 2):
-                x, y = map(int, line[i:i+2])
-                voronoi_dcel.create_site(x, y, site_index)
-                delaunay_dcel.create_vertex(x, y, site_index)
+    if in_file_path == '':
+        for i in range(random.randint(3, 20)):
+            x = random.randint(-23, 23)
+            y = random.randint(-14, 14)
 
-                voronoi_dcel.create_vertex(x, y, site_index) # DELETE ME
-                site_index += 1
+            voronoi_dcel.create_site(x, y, site_index)
+            delaunay_dcel.create_vertex(x, y, site_index)
 
-    # todo calls to functions to generate voronoi diagram
-    # and delaunay triangulation
+            site_index += 1
 
-    # DELETE ME
-    voronoi_dcel.create_half_edge(voronoi_dcel.vertices_list[0],
-                                    voronoi_dcel.vertices_list[1])
-    voronoi_dcel.create_half_edge(voronoi_dcel.vertices_list[1],
-                                    voronoi_dcel.vertices_list[2])
-    voronoi_dcel.create_half_edge(voronoi_dcel.vertices_list[2],
-                                    voronoi_dcel.vertices_list[3])
-    voronoi_dcel.create_half_edge(voronoi_dcel.vertices_list[3],
-                                    voronoi_dcel.vertices_list[0])
+    else:
+        with open(in_file_path, 'r') as sites_file:
+            for line in sites_file:
+                line = line.replace('(', '').replace(')', '').replace(',', '').split()
+                
+                for i in range(0, len(line), 2):
+                    x, y = map(int, line[i:i+2])
+
+                    voronoi_dcel.create_site(x, y, site_index)
+                    delaunay_dcel.create_vertex(x, y, site_index)
+
+                    site_index += 1
+
+    # TODO function call to generate Voronoi Diagram
+    # TODO function call to generate Delaunay Triangulation
+
+    # TODO ensure that next and prev of all edges are filled in or it will error
     
     # write dcels to file
     with open("voronoi.txt", 'w') as f:
@@ -157,7 +166,6 @@ if __name__ == '__main__':
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-    # Main loop
     running = True
     while running:
         for event in pygame.event.get():

@@ -1,36 +1,17 @@
 ****** Voronoi diagram ******
 
-v1 (2, -3) e1,2 e1,4
-v2 (-10, 9) e2,1 e2,3
-v3 (0, 0) e3,2 e3,4
-v4 (-5, -2) e4,3 e4,1
-v5 (4, -7)
 
-v1 nil nil
-v1 nil nil
-v1 nil nil
-v1 nil nil
-v1 nil nil
-v1 nil nil
-v1 nil nil
-v1 nil nil
 
-e1,2 v1 e2,1 f1 e1,2 e1,2
-e2,1 v2 e1,2 f1 e1,2 e1,2
-e2,3 v2 e3,2 f1 e2,3 e2,3
-e3,2 v3 e2,3 f1 e2,3 e2,3
-e3,4 v3 e4,3 f1 e3,4 e3,4
-e4,3 v4 e3,4 f1 e3,4 e3,4
-e4,1 v4 e1,4 f1 e4,1 e4,1
-e1,4 v1 e4,1 f1 e4,1 e4,1
 
 
 ****** Delaunay triangulation ******
 
-v1 (2, -3)
-v2 (-10, 9)
-v3 (0, 0)
-v4 (-5, -2)
-v5 (4, -7)
+v1 (13, -3)
+v2 (-4, -10)
+v3 (21, -1)
+v4 (-7, -11)
+v5 (16, -4)
+v6 (15, 7)
+v7 (-16, 7)
 
 

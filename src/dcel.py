@@ -26,6 +26,7 @@ class Face:
         self.index = index
         self.outer_component = None
         self.inner_component = None
+        self.site = None
 
 class DCEL:
     def __init__(self):
