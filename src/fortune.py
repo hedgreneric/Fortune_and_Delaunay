@@ -1,126 +1,93 @@
+import dcel
+from point import Point
+import beach_line
+from priority_queue import IndexedSortedList
+
 import heapq
-from collections import namedtuple
-from math import sqrt
+# from sortedcontainers import SortedList
+from enum import Enum
 
-class VoronoiDiagram:
-    def __init__(self, points):
-        self.sites = points
-        self.vertices = []
-        self.half_edges = []
-        self.faces = []
+bl = beach_line.BeachLine()
+event_queue = IndexedSortedList(key=lambda e: (-e.point.y, e.point.x))
 
-    def getNbSites(self):
-        return len(self.sites)
+class Type(Enum):
+    SITE = 1
+    CIRCLE = 2
 
-    def getSite(self, index):
-        return self.sites[index]
+class Event:
+    def __init__(self, x:float, y:float, site=None):
+        self.point = Point(x, y)
+        self.valid = True
+        self.site = site
+        self.index = -1
+        if site is None:
+            self.type = Type.CIRCLE
+        else:
+            self.type = Type.SITE
 
-    def createVertex(self, point):
-        vertex = Vertex(point)
-        self.vertices.append(vertex)
-        return vertex
+def fortune_algorithm(dcel):
+    """
+    add a site event in the event queue for each site
+    while the event queue is not empty
+        pop the top event
+        if the event is a site event
+            insert a new arc in the beachline
+            check for new circle events
+        else
+            create a vertex in the diagram
+            remove the shrunk arc from the beachline
+            delete invalidated events
+            check for new circle events
+    """
 
-    def createHalfEdge(self, face):
-        half_edge = HalfEdge(face)
-        self.half_edges.append(half_edge)
-        return half_edge
-
-
-class Vertex:
-    def __init__(self, point):
-        self.point = point
-
-
-class HalfEdge:
-    def __init__(self, face):
-        self.face = face
-        self.origin = None
-        self.destination = None
-        self.prev = None
-        self.next = None
-        self.twin = None
+    for site in dcel.sites_list:
+        event_queue.add(Event(site.point.x, site.point.y, site))
 
 
-class FortuneAlgorithm:
-    def __init__(self, points):
-        self.diagram = VoronoiDiagram(points)
-        self.events = []
-        self.beachline = None
-        self.beachlineY = None
+    while len(event_queue) != 0:
+        e = event_queue.pop(0)
+        bl.beach_line_y = e.point.y
+        if e.type is Type.SITE:
+            handle_site_event(e)
+        else: 
+            handle_circle_event(e)
 
-    def construct(self):
-        # Initialize event queue
-        for i in range(self.diagram.getNbSites()):
-            site = self.diagram.getSite(i)
-            heapq.heappush(self.events, (site.y, Event("SITE", site.y, site, site)))
+def handle_site_event(event):
+    site = event.site
 
-        while self.events:
-            _, event = heapq.heappop(self.events)
-            self.beachlineY = event.y
-            if event.type == "SITE":
-                self.handleSiteEvent(event)
-            else:
-                self.handleCircleEvent(event)
+    # check if the beachline is empty
+    if bl.isEmpty():
+        bl.setRoot(bl.create_arc(site))
 
-    def handleSiteEvent(self, event):
-        site = event.site
-        # Check if beachline is empty
-        if self.beachline is None:
-            self.beachline = Arc(site, None, None, None, None)
-            return
-        
-        # Locate arc to break
-        arcToBreak = self.locateArcAbove(site)
-        self.deleteEvent(arcToBreak)
-        
-        # Create the new arcs and add edge
-        middleArc = self.breakArc(arcToBreak, site)
-        leftArc = middleArc.prev
-        rightArc = middleArc.next
-        
-        # Add edge and check circle events
-        self.addEdge(leftArc, middleArc)
-        if leftArc.prev:
-            self.addEvent(leftArc.prev, leftArc, middleArc)
-        if rightArc.next:
-            self.addEvent(middleArc, rightArc, rightArc.next)
+    # look for the arc above the site
+    arc_to_break = bl.get_arc_above(site.point, bl.beach_line_y)
+    delete_event(arc_to_break)
 
-    def breakArc(self, arc, site):
-        # Create new arcs and insert into the beachline
-        middleArc = Arc(site, arc, arc.next, None, None)
-        leftArc = Arc(arc.site, arc.prev, middleArc, None, None)
-        rightArc = Arc(arc.site, middleArc, arc.next, None, None)
-        middleArc.prev = leftArc
-        middleArc.next = rightArc
-        arc.prev = leftArc
-        arc.next = rightArc
-        self.deleteEvent(arc)
-        return middleArc
-
-    def locateArcAbove(self, site):
-        # Dummy implementation, proper logic required
-        current_arc = self.beachline
-        while current_arc:
-            # Implement logic to find the correct arc above the site
-            current_arc = current_arc.next
-        return current_arc
-
-    def deleteEvent(self, arc):
-        if arc.event:
-            self.events.remove((arc.event.y, arc.event))
-            arc.event = None
-
-    def addEvent(self, leftArc, middleArc, rightArc):
-        # Logic to add circle event if valid
-        pass
-
-    def addEdge(self, leftArc, middleArc):
-        # Create and set half edges
-        pass
+    # replace this arc with the new arcs
+    middle_arc = 
 
 
-# Example usage
-points = [Vector2(1, 1), Vector2(4, 4), Vector2(2, 5), Vector2(6, 3)]
-fa = FortuneAlgorithm(points)
-fa.construct()
+def handle_circle_event(gamma):
+    print()
 
+def delete_event(arc:beach_line.Arc):
+    if arc.event is not None:
+        event_queue.pop(arc.event.index)
+        arc.event = None
+
+def break_arc(arc:beach_line.Arc, site:dcel.Site):
+    middle_arc = bl.create_arc(site)
+
+    left_arc = bl.create_arc(arc.site)
+    left_arc.left_half_edge = arc.left_half_edge
+
+    right_arc = bl.create_arc(arc.site)
+    right_arc.right_half_edge = arc.right_half_edge
+
+    # replace
+    # insert before
+    # insert after
+
+    del arc
+
+    return middle_arc

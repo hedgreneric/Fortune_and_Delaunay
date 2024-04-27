@@ -14,19 +14,20 @@ class Vertex:
         self.incident_edges_list = [] # Incident Edges
 
 class Half_Edge:
-    def __init__(self):
-        self.origin = None
+    def __init__(self, origin=None, destination=None):
+        self.origin = origin
+        self.destination = destination
         self.prev = None
         self.twin = None
         self.next = None
         self.face = None
 
 class Face:
-    def __init__(self, index):
+    def __init__(self, index, outer_component=None, inner_component=None, site=None):
         self.index = index
-        self.outer_component = None
-        self.inner_component = None
-        self.site = None
+        self.outer_component = outer_component
+        self.inner_component = inner_component
+        self.site = site
 
 class DCEL:
     def __init__(self):
@@ -43,23 +44,17 @@ class DCEL:
     
     def create_half_edge(self, origin, destination):
         # create 2 half edges
-        edge = Half_Edge()
-        twin_edge = Half_Edge()
+        edge = Half_Edge(origin, destination)
+        twin_edge = Half_Edge(destination, origin)
         
-        edge.face = self.create_face(1) # DELETE
-        twin_edge.face = self.create_face(1) # DELETE
+        edge.face = self.create_face(1) # TODO DELETE ME
+        twin_edge.face = self.create_face(1) # TODO DELETE ME
 
-        # set origin and destinations
-        edge.origin = origin
-        edge.destination = destination
-        twin_edge.origin = destination
-        twin_edge.destination = origin
-
-        # FIX  next is not the next point, it is the next half edge for that cell
+        # TODO FIX  next is not the next point, it is the next half edge for that cell
         edge.next = edge
         edge.prev = edge
 
-        # FIX  next is not the next point, it is the next half edge for that cell
+        # TODO FIX  next is not the next point, it is the next half edge for that cell
         twin_edge.next = edge
         twin_edge.prev = edge
 

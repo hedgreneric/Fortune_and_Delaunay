@@ -1,5 +1,6 @@
 import dcel as dcel
 from point import Point
+import fortune
 
 import pygame
 from pygame.locals import *
