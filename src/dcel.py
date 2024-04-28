@@ -2,13 +2,13 @@ import math as m
 from point import Point
 
 class Site:
-    def __init__(self, point, index):
+    def __init__(self, point=None, index=None, face=None):
         self.index:int = index
         self.point:Point = point
-        self.face:Face = None
+        self.face:Face = face
 
 class Vertex:
-    def __init__(self, point, index):
+    def __init__(self, point=None, index=None):
         self.index:int = index
         self.point:Point = point
         self.incident_edges_list:list[Half_Edge] = [] # Incident Edges
@@ -23,7 +23,7 @@ class Half_Edge:
         self.face:Face = None
 
 class Face:
-    def __init__(self, index, outer_component=None, inner_component=None, site=None):
+    def __init__(self, index=-1, outer_component=None, inner_component=None, site=None):
         self.index:int = index
         self.outer_component:Half_Edge = outer_component
         self.inner_component:Half_Edge = inner_component
@@ -61,7 +61,9 @@ class DCEL:
     
     def create_site(self, x, y, index):
         point = Point(x, y)
-        site = Site(point, index)
+        face = self.create_face(index)
+        site = Site(point, index, face)
+        site.face.site = site
         self.sites_list.append(site)
         return site
     

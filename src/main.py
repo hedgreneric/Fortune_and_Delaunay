@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
                     site_index += 1
 
-    fortune.fortune_algorithm(voronoi_dcel)
+    fortune.Voronoi_Diagram(voronoi_dcel)
     # TODO function call to generate Delaunay Triangulation
 
     # TODO ensure that next and prev of all edges are filled in or it will error
