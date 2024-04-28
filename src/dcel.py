@@ -3,38 +3,38 @@ from point import Point
 
 class Site:
     def __init__(self, point, index):
-        self.index = index
-        self.point = point
-        self.face = None
+        self.index:int = index
+        self.point:Point = point
+        self.face:Face = None
 
 class Vertex:
     def __init__(self, point, index):
-        self.index = index
-        self.point = point
-        self.incident_edges_list = [] # Incident Edges
+        self.index:int = index
+        self.point:Point = point
+        self.incident_edges_list:list[Half_Edge] = [] # Incident Edges
 
 class Half_Edge:
     def __init__(self, origin=None, destination=None):
-        self.origin = origin
-        self.destination = destination
-        self.prev = None
-        self.twin = None
-        self.next = None
-        self.face = None
+        self.origin:Vertex = origin
+        self.destination:Vertex = destination
+        self.prev:Half_Edge = None
+        self.twin:Half_Edge = None
+        self.next:Half_Edge = None
+        self.face:Face = None
 
 class Face:
     def __init__(self, index, outer_component=None, inner_component=None, site=None):
-        self.index = index
-        self.outer_component = outer_component
-        self.inner_component = inner_component
-        self.site = site
+        self.index:int = index
+        self.outer_component:Half_Edge = outer_component
+        self.inner_component:Half_Edge = inner_component
+        self.site:Site = site
 
 class DCEL:
     def __init__(self):
-        self.vertices_list = []
-        self.half_edges_list = []
-        self.faces_list = []
-        self.sites_list = []
+        self.vertices_list:list[Vertex] = []
+        self.half_edges_list:list[Half_Edge] = []
+        self.faces_list:list[Face] = []
+        self.sites_list:list[Site] = []
 
     def create_vertex(self, x, y, index):
         point = Point(x, y)

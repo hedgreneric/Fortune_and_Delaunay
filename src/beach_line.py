@@ -1,5 +1,5 @@
-import fortune
-import dcel
+import fortune as f
+import dcel as DCEL
 from point import Point
 
 from enum import Enum
@@ -13,27 +13,27 @@ class Arc:
     def __init__(self, color=None, parent=None, left=None, right=None, site=None, left_half_edge=None,
                  right_half_edge=None, event=None, prev=None, next=None ):
         # used for balancing
-        self.color = color
+        self.color:Color = color
 
         # hierarchy
-        self.parent = parent # Arc
-        self.left = left # Arc
-        self.right = right # Arc
+        self.parent:Arc = parent # Arc
+        self.left:Arc = left # Arc
+        self.right:Arc = right # Arc
 
         # diagram
-        self.site = site # dcel.site
-        self.left_half_edge = left_half_edge # dcel.half_edge
-        self.right_half_edge = right_half_edge # dcel.half_edge
-        self.event = event # Event
+        self.site:DCEL.Site = site # dcel.site
+        self.left_half_edge:DCEL.Half_Edge = left_half_edge # dcel.half_edge
+        self.right_half_edge:DCEL.Half_Edge = right_half_edge # dcel.half_edge
+        self.event:f.Event = event # Event
 
-        self.prev = prev # Arc
-        self.next = next # Arc
+        self.prev:Arc = prev # Arc
+        self.next:Arc = next # Arc
 
 class BeachLine:
     def __init__(self):
-        self.nil = None # Arc
-        self.root = None # Arc
-        self.beach_line_y = 0.0
+        self.nil:Arc = Arc(color=Color.BLACK)
+        self.root:Arc = self.nil
+        self.beach_line_y:float = 0.0
 
     def is_empty(self):
         return self.root == None
@@ -42,17 +42,17 @@ class BeachLine:
         self.root = arc
         self.root = Color.BLACK
 
-    def create_arc(site:dcel.Site):
+    def create_arc(self, site:DCEL.Site):
         return Arc(color=Color.RED, site=site)
     
-    def is_none(arc:Arc):
+    def is_none(self, arc:Arc):
         return arc is None
     
-    def compute_breakpoint(pt1:Point, pt2:Point, l:float):
-        x1 = float(pt1.x)
-        y1 = float(pt1.y)
-        x2 = float(pt2.x)
-        y2 = float(pt2.y)
+    def compute_breakpoint(self, pt1:Point, pt2:Point, l:float):
+        x1 = pt1.x
+        y1 = pt1.y
+        x2 = pt2.x
+        y2 = pt2.y
 
         d1 = 1.0 / (2.0 * (y1 - l))
         d2 = 1.0 / (2.0 * (y2 - l))
@@ -84,22 +84,184 @@ class BeachLine:
                 found = True
 
         return node
+    
+    def replace(self, a:Arc, b:Arc):
+        self.replace_node(a, b)
+        b.left = a.left
+        b.right = a.right
+        if (not self.is_none(b.left)):
+            b.left.parent = b
+        if (not self.is_none(b.right)):
+            b.right.parent = b
+        b.prev = a.prev
+        b.next = a.next
+        if (not self.is_none(b.prev)):
+            b.prev.next = b
+        if (not self.is_none(b.next)):
+            b.next.prev = b
+        b.color = a.color
+    
+    def replace_node(self, a:Arc, b:Arc):
+        if self.is_none(a):
+            self.root = b
+        elif a is a.parent.left:
+            a.parent.left = b
+        else:
+            a.parent.right = b
 
+        b.parent = a.parent
 
+    def insert_before(self, a:Arc, b:Arc):
+        if a.left is None:
+            a.left = b
+        else:
+            a.prev.right = b
+            b.parent = a.prev
 
+        b.prev = a.prev
+        if not self.is_none(b.prev):
+            b.prev.next = b
+        b.next = a
+        a.prev = b
 
+        self.insert_fixup(b)
 
-    # def insert_before(curr:Arc, insert:Arc):
-    #     if curr.left is None:
-    #         curr.left = insert
-    #     else:
-    #         curr.prev.right = insert
-    #         insert.parent = curr.prev
+    def insert_after(self, a:Arc, b:Arc):
+        if self.is_none(a.right):
+            a.right = b
+            b.parent = a
+        else:
+            a.next.left = b
+            b.parent = a.next
+        
+        b.next = a.next
+        if not self.is_none(b.next):
+            b.next.prev = b
+        b.prev = a
+        a.next = b
 
-    #     insert.prev = curr.prev
-    #     if insert.prev is not None:
-    #         insert.prev.next = insert
-    #     insert.next = curr
-    #     curr.prev = insert
+        self.insert_fixup(b)
+        
+    def insert_fixup(self, a:Arc):
+        g:Arc
 
-        # insertFixup(insert)
+        while a.parent.color is Color.RED:
+            if a.parent is a.parent.parent.left:
+                g = a.parent.parent.right
+
+                if g.color is Color.RED:
+                    a.parent.color = Color.BLACK
+                    g.color = Color.BLACK
+                    a.parent.parent.color = Color.RED
+                    a = a.parent.parent
+                else:
+                    if a is a.parent.right:
+                        a = a.parent
+                        self.rotate_left(a)
+                    a.parent.color = Color.BLACK
+                    a.parent.parent.color = Color.RED
+                    self.rotate_right(a.parent.parent)
+            else:
+                g = a.parent.parent.left
+
+                if g.color is Color.RED:
+                    a.parent.color = Color.BLACK
+                    g.color = Color.BLACK
+                    a.parent.parent.color = Color.RED
+                    a = a.parent.parent
+                else:
+                    if a is a.parent.left:
+                        a = a.parent
+                        self.rotate_right(a)
+                    a.parent.color = Color.BLACK
+                    a.parent.parent.color = Color.RED
+                    self.rotate_left(a.parent.parent)
+        
+        self.root.color = Color.BLACK
+
+    def remove_fixup(self, a:Arc):
+        u:Arc
+
+        while a is not self.root and a.color is Color.BLACK:
+            if a is a.parent.left:
+                u = a.parent.right
+
+                if u.color is Color.RED:
+                    u.color = Color.BLACK
+                    a.parent.color = Color.RED
+                    self.rotate_left(a.parent)
+                    u = a.parent.right
+
+                if u.left.color is Color.BLACK and u.right.color is Color.BLACK:
+                    u.color = Color.RED
+                    a = a.parent
+                else:
+                    if u.right.color is Color.BLACK:
+                        u.left.color = Color.BLACK
+                        u.color = Color.RED
+                        self.rotate_right(u)
+                        u = a.parent.right
+                    
+                    u.color = a.parent.color
+                    a.parent.color = Color.BLACK
+                    u.right.color = Color.BLACK
+                    self.rotate_left(a.parent)
+                    a = self.root
+            else:
+                u = a.parent.left
+                
+                if u.color is Color.RED:
+                    u.color = Color.BLACK
+                    a.parent.color = Color.RED
+                    self.rotate_right(a.parent)
+                    u = a.parent.left
+                
+                if u.left.color is Color.BLACK and u.right.color is Color.BLACK:
+                    u.color = Color.RED
+                    a = a.parent
+                else:
+                    if u.left.color is Color.BLACK:
+                        u.right.color = Color.BLACK
+                        u.color = Color.RED
+                        self.rotate_left(u)
+                        u = a.parent.left
+                    
+                    u.color = a.parent.color
+                    a.parent.color = Color.BLACK
+                    u.left.color = Color.BLACK
+                    self.rotate_right(a.parent)
+                    a = self.root
+
+        a.color = Color.BLACK
+
+    def rotate_left(self, a:Arc):
+        b = a.right
+        a.right = b.left
+        if not self.is_none(b.left):
+            b.left.parent = a
+        b.parent = a.parent
+        if self.is_none(a.parent):
+            self.root = b
+        elif a.parent.left is a:
+            a.parent.left = b
+        else:
+            a.parent.right = b
+        
+        b.left = a
+        a.parent = b
+
+    def rotate_right(self, a:Arc):
+        b = a.left
+        a.left = b.right
+        if not self.is_none(b.right):
+            b.right.parent = a
+        b.parent = a.parent
+        if self.is_none(a.parent):
+            self.root = b
+        elif a.parent.left is a:
+            a.parent.left = b
+        else:
+            a.parent.right = b
+
+        b.right = a
+        a.parent = b

@@ -2,8 +2,8 @@ import math as m
 
 class Point:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x:float = x
+        self.y:float = y
 
     def __neg__(self):
         return Point(-self.x, -self.y)

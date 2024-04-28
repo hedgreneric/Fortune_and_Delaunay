@@ -1,6 +1,6 @@
-import dcel as dcel
+import dcel as DCEL
 from point import Point
-import fortune
+# import fortune
 
 import pygame
 from pygame.locals import *
@@ -9,16 +9,19 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import random
 
+voronoi_dcel = DCEL.DCEL()
+delaunay_dcel = DCEL.DCEL()
+
 def point_converter(x, y):
     """ Convert the points given in the txt to valid points on the screen.
         Also have (0,0) be in the center
     """
 
     x_shift = 512
-    y_shift = (int) (x_shift * .75)
+    y_shift = (x_shift * .75)
 
     point_range_x = 24
-    point_multiplier = (int) (x_shift / point_range_x) # 512 / 20 or 384 / 15
+    point_multiplier = (x_shift / point_range_x) # 512 / 20 or 384 / 15
 
     return ((x * point_multiplier) + x_shift), ((y * point_multiplier) + y_shift)
 
@@ -108,9 +111,6 @@ if __name__ == '__main__':
     in_file_path = input("Enter input file path: ")
     
     site_index = 1
-
-    voronoi_dcel = dcel.DCEL()
-    delaunay_dcel = dcel.DCEL()
 
     if in_file_path == '':
         for i in range(random.randint(3, 20)):
