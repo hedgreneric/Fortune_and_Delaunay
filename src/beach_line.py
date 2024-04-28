@@ -3,7 +3,7 @@ import dcel as DCEL
 from point import Point
 
 from enum import Enum
-import math
+import math as m
 
 class Color(Enum):
     RED = 1
@@ -31,19 +31,20 @@ class Arc:
 
 class BeachLine:
     def __init__(self):
-        self.nil:Arc = Arc(color=Color.BLACK)
-        self.root:Arc = self.nil
+        self.null:Arc = Arc(color=Color.BLACK.name)
+        self.root:Arc = self.null
         self.beach_line_y:float = 0.0
 
     def is_empty(self):
-        return self.root == None
+        return self.is_none(self.root)
     
     def set_root(self, arc:Arc):
         self.root = arc
-        self.root = Color.BLACK
+        self.root.color = Color.BLACK
 
     def create_arc(self, site:DCEL.Site):
-        return Arc(color=Color.RED, site=site)
+        null = self.null
+        return Arc(Color.RED, null, null, null, site, None, None, None, null, null)
     
     def is_none(self, arc:Arc):
         return arc is None
@@ -61,7 +62,7 @@ class BeachLine:
         c = (((y1**2) + (x1**2) - (l**2)) * d1) - (((y2**2) + (x2**2) - (l**2)) * d2)
         delta = b * b - 4.0 * a * c
 
-        return (-b + math.sqrt(delta)) / (2.0 * a)
+        return (-b + m.sqrt(delta)) / (2.0 * a)
 
     
     def get_arc_above(self, point:Point, l:float):
@@ -102,7 +103,7 @@ class BeachLine:
         b.color = a.color
     
     def replace_node(self, a:Arc, b:Arc):
-        if self.is_none(a):
+        if self.is_none(a.parent):
             self.root = b
         elif a is a.parent.left:
             a.parent.left = b
@@ -265,3 +266,36 @@ class BeachLine:
 
         b.right = a
         a.parent = b
+
+
+    def remove(self, a:Arc):
+        n:Arc
+        u:Arc = a
+        u_init_color:Color = u.color
+
+        if not self.is_none(a.left):
+            n = a.right
+            self.replace_node(a, a.right)
+        elif self.is_none(a.right):
+            n = a.left
+            self.replace_node(a, a.left)
+        else:
+            u = self.left_most(a.right)
+            u_init_color = u.color
+            n = u.right
+            if u.parent is a:
+                n.parent = u
+            else:
+                self.replace_node(u, u.right)
+                u.right = a.right
+                u.right.parent = u
+            
+            self.replace_node(a, u)
+            u.left = a.left
+            u.left.parent = u
+            u.color = a.color
+            
+    def left_most(self, a:Arc):
+        while not self.is_none(a.left):
+            a = a.left
+        return a

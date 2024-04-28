@@ -1,6 +1,6 @@
 import dcel as DCEL
 from point import Point
-# import fortune
+import fortune
 
 import pygame
 from pygame.locals import *
@@ -131,11 +131,11 @@ if __name__ == '__main__':
                     x, y = map(int, line[i:i+2])
 
                     voronoi_dcel.create_site(x, y, site_index)
-                    delaunay_dcel.create_vertex(x, y, site_index)
+                    # delaunay_dcel.create_vertex(x, y, site_index)
 
                     site_index += 1
 
-    # TODO function call to generate Voronoi Diagram
+    fortune.fortune_algorithm(voronoi_dcel)
     # TODO function call to generate Delaunay Triangulation
 
     # TODO ensure that next and prev of all edges are filled in or it will error

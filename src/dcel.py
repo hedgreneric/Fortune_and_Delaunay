@@ -14,9 +14,9 @@ class Vertex:
         self.incident_edges_list:list[Half_Edge] = [] # Incident Edges
 
 class Half_Edge:
-    def __init__(self, origin=None, destination=None):
-        self.origin:Vertex = origin
-        self.destination:Vertex = destination
+    def __init__(self):
+        self.origin:Vertex = None
+        self.destination:Vertex = None
         self.prev:Half_Edge = None
         self.twin:Half_Edge = None
         self.next:Half_Edge = None
@@ -36,41 +36,23 @@ class DCEL:
         self.faces_list:list[Face] = []
         self.sites_list:list[Site] = []
 
-    def create_vertex(self, x, y, index):
-        point = Point(x, y)
+    def create_vertex(self, point:Point, index:int=-1):
+        if index == -1: index = len(self.vertices_list)
         vertex = Vertex(point, index)
+
         self.vertices_list.append(vertex)
         return vertex
     
-    def create_half_edge(self, origin, destination):
-        # create 2 half edges
-        edge = Half_Edge(origin, destination)
-        twin_edge = Half_Edge(destination, origin)
-        
-        edge.face = self.create_face(1) # TODO DELETE ME
-        twin_edge.face = self.create_face(1) # TODO DELETE ME
+    def create_half_edge(self, face:Face):
+        half_edge = Half_Edge()
+        half_edge.face = face
 
-        # TODO FIX  next is not the next point, it is the next half edge for that cell
-        edge.next = edge
-        edge.prev = edge
+        self.half_edges_list.append(half_edge)
 
-        # TODO FIX  next is not the next point, it is the next half edge for that cell
-        twin_edge.next = edge
-        twin_edge.prev = edge
+        if face.outer_component is None:
+            face.outer_component = half_edge
 
-        # set twins
-        edge.twin = twin_edge
-        twin_edge.twin = edge
-
-        # add to incident edge list
-        origin.incident_edges_list.append(edge)
-        destination.incident_edges_list.append(twin_edge)
-
-        # append to DCEL lists
-        self.half_edges_list.append(edge)
-        self.half_edges_list.append(twin_edge)
-
-        return edge
+        return half_edge
     
     def create_face(self, index):
         face = Face(index)

@@ -36,17 +36,17 @@ class Point:
     def __str__(self):
         return f"({self.x}, {self.y})"
 
-    def getOrthogonal(self):
+    def get_orthogonal(self):
         return Point(-self.y, self.x)
 
     def dot(self, other):
         return self.x * other.x + self.y * other.y
 
-    def getNorm(self):
+    def get_norm(self):
         return m.sqrt(self.x * self.x + self.y * self.y)
 
-    def getDistance(self, other):
-        return (self - other).getNorm()
+    def get_distance(self, other):
+        return (self - other).get_norm()
 
-    def getDet(self, other):
+    def get_det(self, other):
         return self.x * other.y - self.y * other.x

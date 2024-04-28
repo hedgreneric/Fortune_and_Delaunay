@@ -1,6 +1,6 @@
-from sortedcontainers import SortedList
+from sortedcontainers import SortedKeyList
 
-class IndexedSortedList(SortedList):
+class IndexedSortedList(SortedKeyList):
     def add(self, value):
         super().add(value)
         self._reindex()  # Reindex after adding
