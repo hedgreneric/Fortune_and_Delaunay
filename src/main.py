@@ -12,7 +12,12 @@ import random
 voronoi_dcel = DCEL.DCEL()
 delaunay_dcel = DCEL.DCEL()
 
-def point_converter(x, y):
+# def point_convert_in(x, y):
+    
+
+#     return x
+
+def point_converter_oup(x, y):
     """ Convert the points given in the txt to valid points on the screen.
         Also have (0,0) be in the center
     """
@@ -145,7 +150,7 @@ if __name__ == '__main__':
         f.write("****** Voronoi diagram ******\n\n")
         write_vertices(f, voronoi_dcel)
         write_faces(f, voronoi_dcel)
-        write_half_edges(f, voronoi_dcel)
+        # write_half_edges(f, voronoi_dcel)
 
         f.write("\n\n****** Delaunay triangulation ******\n\n")        
         write_vertices(f, delaunay_dcel)

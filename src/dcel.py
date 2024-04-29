@@ -1,26 +1,20 @@
 import math as m
 from point import Point
 
-class Site:
-    def __init__(self, point=None, index=None, face=None):
-        self.index:int = index
-        self.point:Point = point
-        self.face:Face = face
-
 class Vertex:
     def __init__(self, point=None, index=None):
-        self.index:int = index
-        self.point:Point = point
+        self.index:int = index or -1
+        self.point:Point = point or Point()
         self.incident_edges_list:list[Half_Edge] = [] # Incident Edges
 
 class Half_Edge:
     def __init__(self):
-        self.origin:Vertex = None
-        self.destination:Vertex = None
+        self.origin:Vertex = Vertex()
+        self.destination:Vertex = Vertex()
         self.prev:Half_Edge = None
         self.twin:Half_Edge = None
         self.next:Half_Edge = None
-        self.face:Face = None
+        self.face:Face = Face()
 
 class Face:
     def __init__(self, index=-1, outer_component=None, inner_component=None, site=None):
@@ -28,6 +22,12 @@ class Face:
         self.outer_component:Half_Edge = outer_component
         self.inner_component:Half_Edge = inner_component
         self.site:Site = site
+
+class Site:
+    def __init__(self, point=None, index=None, face=None):
+        self.index:int = index or -1
+        self.point:Point = point or Point()
+        self.face:Face = face
 
 class DCEL:
     def __init__(self):

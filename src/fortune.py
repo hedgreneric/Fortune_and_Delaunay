@@ -95,7 +95,7 @@ class Voronoi_Diagram:
         # add edge to dcel
         self.add_edge(left_arc, middle_arc)
         middle_arc.right_half_edge = middle_arc.left_half_edge
-        right_arc.leftHalfEdge = left_arc.right_half_edge
+        right_arc.left_half_edge = left_arc.right_half_edge
 
         # check circle events
         if not bl.is_none(left_arc.prev):
@@ -185,7 +185,7 @@ class Voronoi_Diagram:
     def add_event(self, left:BL.Arc, middle:BL.Arc, right:BL.Arc):
         y:float
 
-        converge_point = self.get_convergence_point(left.site.point, middle.site.point, right.site.point, y)
+        converge_point, y = self.get_convergence_point(left.site.point, middle.site.point, right.site.point)
         is_below = y <= bl.beach_line_y
         is_left_breakpoint_moving_right = self.is_moving_right(left, middle)
         is_right_breakpoint_moving_right = self.is_moving_right(middle, right)
@@ -200,7 +200,7 @@ class Voronoi_Diagram:
             event_queue.add(event)
 
 
-    def get_convergence_point(self, pt1:Point, pt2:Point, pt3:Point, y:float):
+    def get_convergence_point(self, pt1:Point, pt2:Point, pt3:Point):
         v1:Point = (pt1 - pt2).get_orthogonal()
         v2:Point = (pt2 - pt3).get_orthogonal()
         delta:Point = 0.5 * (pt3 - pt1)
@@ -208,7 +208,7 @@ class Voronoi_Diagram:
         center:Point = 0.5 * (pt1 + pt2) + (t * v1)
         radius:float = center.get_distance(pt1)
         y = center.y - radius
-        return center
+        return center, y
 
 
     def is_moving_right(self, left:BL.Arc, right:BL.Arc):

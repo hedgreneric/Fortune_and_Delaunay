@@ -18,3 +18,4 @@ class IndexedSortedList(SortedKeyList):
         # Reindex the elements in the sorted list
         for i, item in enumerate(self):
             item.index = i
+

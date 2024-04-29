@@ -5,6 +5,7 @@ from point import Point
 from enum import Enum
 import math as m
 from typing import Literal
+import copy
 
 class Color(Enum):
     RED = 1
@@ -13,25 +14,26 @@ class Color(Enum):
 RED: Literal[Color.RED] = Color.RED
 BLACK: Literal[Color.RED] = Color.BLACK
 
+
 class Arc:
-    def __init__(self, color=None, parent=None, left=None, right=None, site=None, left_half_edge=None,
-                 right_half_edge=None, event=None, prev=None, next=None ):
+    def __init__(self, color, parent=None, left=None, right=None, site=DCEL.Site(), left_half_edge=DCEL.Half_Edge(),
+                 right_half_edge=DCEL.Half_Edge(), event=None, prev=None, next=None ):
         # used for balancing
         self.color:Color = color
 
         # hierarchy
-        self.parent:Arc = parent # Arc
-        self.left:Arc = left # Arc
-        self.right:Arc = right # Arc
+        self.parent:Arc = right 
+        self.left:Arc = left
+        self.right:Arc = right
 
         # diagram
-        self.site:DCEL.Site = site # dcel.site
-        self.left_half_edge:DCEL.Half_Edge = left_half_edge # dcel.half_edge
-        self.right_half_edge:DCEL.Half_Edge = right_half_edge # dcel.half_edge
-        self.event:f.Event = event # Event
+        self.site:DCEL.Site = site
+        self.left_half_edge:DCEL.Half_Edge = left_half_edge
+        self.right_half_edge:DCEL.Half_Edge = right_half_edge
+        self.event:f.Event = event
 
-        self.prev:Arc = prev # Arc
-        self.next:Arc = next # Arc
+        self.prev:Arc = prev
+        self.next:Arc = next
 
 class BeachLine:
     def __init__(self):
@@ -46,12 +48,18 @@ class BeachLine:
         self.root = arc
         self.root.color = BLACK
 
-    def create_arc(self, site:DCEL.Site):
+    def create_arc(self, site:DCEL.Site=DCEL.Site()):
         null = self.null
         return Arc(Color.RED, null, null, null, site, None, None, None, null, null)
     
     def is_none(self, arc:Arc):
         return arc is self.null
+    
+    def check_none(self, arc:Arc):
+        if self.is_none(arc):
+            return self.create_arc()
+        else:
+            return arc
     
     def compute_breakpoint(self, pt1:Point, pt2:Point, l:float):
         x1 = pt1.x
@@ -73,8 +81,11 @@ class BeachLine:
         node = self.root
         found = False
         while not found:
-            breakpoint_left = float(m.inf)
-            breakpoint_right = float(-m.inf)
+
+            node = self.check_none(node)
+
+            breakpoint_left = float(-m.inf)
+            breakpoint_right = float(m.inf)
             if not self.is_none(node.prev):
                 breakpoint_left = self.compute_breakpoint(node.prev.site.point, node.site.point, l)
 
@@ -241,7 +252,7 @@ class BeachLine:
         a.color = BLACK
 
     def rotate_left(self, a:Arc):
-        b = a.right
+        b:Arc = a.right
         a.right = b.left
         if not self.is_none(b.left):
             b.left.parent = a
@@ -257,7 +268,7 @@ class BeachLine:
         a.parent = b
 
     def rotate_right(self, a:Arc):
-        b = a.left
+        b:Arc = a.left
         a.left = b.right
         if not self.is_none(b.right):
             b.right.parent = a
