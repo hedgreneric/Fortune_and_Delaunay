@@ -12,12 +12,10 @@ import random
 voronoi_dcel = DCEL.DCEL()
 delaunay_dcel = DCEL.DCEL()
 
-# def point_convert_in(x, y):
-    
+def point_convert_in(x, y):
+    return (x + 23), (y + 14)
 
-#     return x
-
-def point_converter_oup(x, y):
+def point_converter_out(x, y):
     """ Convert the points given in the txt to valid points on the screen.
         Also have (0,0) be in the center
     """
@@ -26,9 +24,10 @@ def point_converter_oup(x, y):
     y_shift = (x_shift * .75)
 
     point_range_x = 24
+    point_range_y = point_range_x * .75
     point_multiplier = (x_shift / point_range_x) # 512 / 20 or 384 / 15
 
-    return ((x * point_multiplier) + x_shift), ((y * point_multiplier) + y_shift)
+    return (((x - point_range_x - 1) * point_multiplier) + x_shift), (((y - point_range_y - 1) * point_multiplier) + y_shift)
 
 
 def draw_line(v1, v2, color):
@@ -44,10 +43,10 @@ def draw_line(v1, v2, color):
         glColor3f(1.0, 1.0, 1.0)
 
     glBegin(GL_LINES)
-    x, y = point_converter(v1.point.x, v1.point.y)
+    x, y = point_converter_out(v1.point.x, v1.point.y)
     glVertex2f(x, y)
 
-    x, y = point_converter(v2.point.x, v2.point.y)
+    x, y = point_converter_out(v2.point.x, v2.point.y)
 
     glVertex2f(x, y)
     glEnd()
@@ -66,7 +65,7 @@ def draw_point(v, color, size=5):
     glPointSize(size)
     glBegin(GL_POINTS)
 
-    x, y = point_converter(v.point.x, v.point.y)
+    x, y = point_converter_out(v.point.x, v.point.y)
 
     glVertex2f(x, y)
     glEnd()
@@ -122,8 +121,9 @@ if __name__ == '__main__':
             x = random.randint(-23, 23)
             y = random.randint(-14, 14)
 
+            x, y = point_convert_in(x, y)
             voronoi_dcel.create_site(x, y, site_index)
-            delaunay_dcel.create_vertex(x, y, site_index)
+            delaunay_dcel.create_vertex(Point(x, y), site_index)
 
             site_index += 1
 
@@ -135,12 +135,15 @@ if __name__ == '__main__':
                 for i in range(0, len(line), 2):
                     x, y = map(int, line[i:i+2])
 
+                    x, y = point_convert_in(x, y)
                     voronoi_dcel.create_site(x, y, site_index)
                     # delaunay_dcel.create_vertex(x, y, site_index)
 
                     site_index += 1
 
-    fortune.Voronoi_Diagram(voronoi_dcel)
+    voronoi_diagram = fortune.Voronoi_Diagram(voronoi_dcel)
+    voronoi_diagram.fortune_algorithm()
+    
     # TODO function call to generate Delaunay Triangulation
 
     # TODO ensure that next and prev of all edges are filled in or it will error

@@ -2,11 +2,10 @@ import dcel as DCEL
 from point import Point
 import beach_line as BL
 from priority_queue import IndexedSortedList
+from box import Box
 
-from main import voronoi_dcel
 
-import heapq
-# from sortedcontainers import SortedList
+import math as m
 from enum import Enum
 
 bl = BL.BeachLine()
@@ -41,26 +40,21 @@ class Event:
     def __lt__(self, other):
         return self.y < other.y
     
+    def __gt__(self, other):
+        return self.y > other.y
+    
+class Linked_Vertex:
+    def __init__(self, prev_half_edge = DCEL.Half_Edge(), vertex = DCEL.Vertex(), next_half_edge = DCEL.Half_Edge):
+        prev_half_edge:DCEL.Half_Edge = prev_half_edge
+        vertex:DCEL.Vertex = vertex
+        next_half_edge:DCEL.Half_Edge = next_half_edge
+    
 class Voronoi_Diagram:
     def __init__(self, dcel:DCEL.DCEL):
         self.dcel = dcel
-        self.fortune_algorithm()
 
 
     def fortune_algorithm(self):
-        """
-        add a site event in the event queue for each site
-        while the event queue is not empty
-            pop the top event
-            if the event is a site event
-                insert a new arc in the beachline
-                check for new circle events
-            else
-                create a vertex in the diagram
-                remove the shrunk arc from the beachline
-                delete invalidated events
-                check for new circle events
-        """
         if self.dcel is None: raise ValueError("Invalid arguments for Fortune Algorithm")
 
         for site in self.dcel.sites_list:
@@ -68,7 +62,7 @@ class Voronoi_Diagram:
 
         while len(event_queue) != 0:
             e = event_queue.pop(0)
-            bl.beach_line_y = e.point.y
+            bl.beach_line_y = e.y
             if e.type is Type.SITE:
                 self.handle_site_event(e)
             else: 
@@ -192,7 +186,10 @@ class Voronoi_Diagram:
         left_init_x = self.get_init_x(left, middle, is_left_breakpoint_moving_right)
         right_init_x = self.get_init_x(middle, right, is_right_breakpoint_moving_right)
 
-        is_valid:bool = ((is_left_breakpoint_moving_right and left_init_x < converge_point.x) or (not is_left_breakpoint_moving_right and left_init_x > converge_point.x)) and ((is_right_breakpoint_moving_right and right_init_x < converge_point.x) or (not is_right_breakpoint_moving_right and right_init_x > converge_point.x))
+        is_valid:bool = (((is_left_breakpoint_moving_right and left_init_x < converge_point.x) or
+                          (not is_left_breakpoint_moving_right and left_init_x > converge_point.x)) and
+                         ((is_right_breakpoint_moving_right and right_init_x < converge_point.x) or
+                          (not is_right_breakpoint_moving_right and right_init_x > converge_point.x)))
 
         if is_valid and is_below:
             event:Event = Event(y, converge_point, middle)
@@ -223,10 +220,26 @@ class Voronoi_Diagram:
         left.right_half_edge.destination = vertex
         right.left_half_edge.origin = vertex
 
+
     def set_destination(self, left:BL.Arc, right:BL.Arc, vertex:DCEL.Vertex):
         left.right_half_edge.origin = vertex
         right.left_half_edge.destination = vertex
 
+
     def set_prev_half_edge(self, prev:DCEL.Half_Edge, next:DCEL.Half_Edge):
         prev.next = next
         next.prev = prev
+
+    def bound_box(self, box:Box):
+        for v in self.dcel.vertices_list:
+            box.left = min(v.point.x, box.left)
+            box.bottom = min(v.point.y, box.bottom)
+            box.right = min(v.point.x, box.right)
+            box.top = min(v.point.y, box.top)
+
+        linked_vertices_list:list[Linked_Vertex] = []
+        # TODO add vertices map
+        
+        # if not bl.is_empty():
+        #     left_arc = 
+
