@@ -149,9 +149,8 @@ class DCEL:
                     else:
                         is_error = True
                     
-                    he = next_he
-
-                    is_in = is_next_in
+                he = next_he
+                is_in = is_next_in
 
                 if he is not site.face.outer_component:
                     break

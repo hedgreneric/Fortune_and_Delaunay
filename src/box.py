@@ -34,7 +34,7 @@ class Box:
         self.top = top
 
     def contains(self, point:Point):
-         return (point.x > self.left - epsilon and
+         return (point.x >= self.left - epsilon and
                  point.x <= self.right + epsilon and
                  point.y >= self.bottom - epsilon and
                  point.y <= self.top + epsilon)

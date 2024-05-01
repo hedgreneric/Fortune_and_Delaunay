@@ -96,7 +96,7 @@ class Voronoi_Diagram:
         # check circle events
         if not bl.is_none(left_arc.prev):
             self.add_event(left_arc.prev, left_arc, middle_arc)
-        if not bl.is_none(right_arc.prev):
+        if not bl.is_none(right_arc.next):
             self.add_event(middle_arc, right_arc, right_arc.next)
 
 
@@ -236,8 +236,8 @@ class Voronoi_Diagram:
         for v in self.dcel.vertices_list:
             box.left = min(v.point.x, box.left)
             box.bottom = min(v.point.y, box.bottom)
-            box.right = min(v.point.x, box.right)
-            box.top = min(v.point.y, box.top)
+            box.right = max(v.point.x, box.right)
+            box.top = max(v.point.y, box.top)
 
         linked_vertices_list:list[Linked_Vertex] = []
         vertices_dict = {i: [Linked_Vertex() for _ in range(8)] for i in range(len(self.dcel.sites_list))}

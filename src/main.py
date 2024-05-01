@@ -14,21 +14,13 @@ voronoi_dcel = DCEL.DCEL()
 delaunay_dcel = DCEL.DCEL()
 
 def point_convert_in(x, y):
-    return (x + 23), (y + 14)
+    return ((x + 25) / 50), ((y + 25) / 50)
 
 def point_converter_out(x, y):
     """ Convert the points given in the txt to valid points on the screen.
         Also have (0,0) be in the center
     """
-
-    x_shift = 512
-    y_shift = (x_shift * .75)
-
-    point_range_x = 24
-    point_range_y = point_range_x * .75
-    point_multiplier = (x_shift / point_range_x) # 512 / 20 or 384 / 15
-
-    return (((x - point_range_x - 1) * point_multiplier) + x_shift), (((y - point_range_y - 1) * point_multiplier) + y_shift)
+    return (x * 50) + 25, (y * 50) + 25
 
 
 def draw_line(p1:Point, p2:Point, color):
@@ -44,11 +36,9 @@ def draw_line(p1:Point, p2:Point, color):
         glColor3f(1.0, 1.0, 1.0)
 
     glBegin(GL_LINES)
-    x, y = point_converter_out(p1.x, p1.y)
-    glVertex2f(x, y)
+    glVertex2f(p1.x, p1.y)
 
-    x, y = point_converter_out(p2.x, p2.y)
-    glVertex2f(x, y)
+    glVertex2f(p2.x, p2.y)
     glEnd()
 
 def draw_edges(dcel:DCEL.DCEL):
@@ -65,6 +55,7 @@ def draw_edges(dcel:DCEL.DCEL):
         start = half_edge
         while half_edge is not None:
             if half_edge.origin is not None and half_edge.destination is not None:
+                
                 origin = half_edge.origin.point
                 destination = half_edge.destination.point
                 draw_line(origin, destination, "R")
@@ -88,9 +79,7 @@ def draw_point(v, color, size=5):
     glPointSize(size)
     glBegin(GL_POINTS)
 
-    x, y = point_converter_out(v.point.x, v.point.y)
-
-    glVertex2f(x, y)
+    glVertex2f(v.point.x, v.point.y)
     glEnd()
 
 def write_vertices(f, dcel):
@@ -166,7 +155,8 @@ if __name__ == '__main__':
 
     voronoi_diagram = fortune.Voronoi_Diagram(voronoi_dcel)
     voronoi_diagram.fortune_algorithm()
-    voronoi_diagram.bound_box(Box(-0.05, -0.05, 1.05, 1.05))
+    voronoi_diagram.bound_box(Box(0.0, 0.0, 1.05, 1.05))
+    voronoi_dcel.box_intersect(Box(0.0, 0.0, 1.0, 1.0))
     
     # TODO function call to generate Delaunay Triangulation
 
@@ -186,14 +176,14 @@ if __name__ == '__main__':
 
 
     pygame.init()
-    display = (1024, 768)
+    display = (1024, 1024)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("Voronoi Diagram and Delaunay Triangulation")
 
     # Set up 2D orthographic projection
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    glOrtho(0, 1024, 0, 768, -1, 1)  # (left, right, bottom, top, near, far)
+    glOrtho(0.0, 1.0, 0.0, 1.0, -1, 1)  # (left, right, bottom, top, near, far)
 
     # Set up model-view matrix
     glMatrixMode(GL_MODELVIEW)
@@ -213,8 +203,8 @@ if __name__ == '__main__':
         #     draw_line(e.origin, e.destination, "R")
         draw_edges(voronoi_dcel)
 
-        # for v in voronoi_dcel.vertices_list:
-        #     draw_point(v, "R")
+        for v in voronoi_dcel.vertices_list:
+            draw_point(v, "R")
 
         for s in voronoi_dcel.sites_list:
             draw_point(s, "G")
