@@ -82,7 +82,7 @@ class Box:
                     i += 1
 
         # right
-        if (origin.x < (self.right + epsilon)) or (dest.x > (self.right + epsilon)):
+        if (origin.x > (self.right + epsilon)) or (dest.x > (self.right + epsilon)):
             t[i] = (self.right - origin.x) / dir.x
             if t[i] > epsilon and t[i] < (1.0 - epsilon):
                 intersections_list[i].side = RIGHT
@@ -92,7 +92,7 @@ class Box:
                     i += 1
 
         # bottom
-        if (origin.y < self.bottom - epsilon) or (dest.y > (self.bottom - epsilon)):
+        if (origin.y < self.bottom - epsilon) or (dest.y < (self.bottom - epsilon)):
             t[i] = (self.bottom - origin.y) / dir.y
             if i < 2 and t[i] > epsilon and t[i] < (1.0 - epsilon):
                 intersections_list[i].side = BOTTOM
@@ -102,7 +102,7 @@ class Box:
                     i += 1
 
         # top
-        if (origin.y < self.top + epsilon) or (dest.y > (self.top + epsilon)):
+        if (origin.y > self.top + epsilon) or (dest.y > (self.top + epsilon)):
             t[i] = (self.top - origin.y) / dir.y
             if i < 2 and t[i] > epsilon and t[i] < (1.0 - epsilon):
                 intersections_list[i].side = TOP

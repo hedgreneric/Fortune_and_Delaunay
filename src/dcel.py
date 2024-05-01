@@ -69,7 +69,7 @@ class DCEL:
         site.face.site = site
         self.sites_list.append(site)
         return site
-    
+
     def get_face(self, i:int):
         return self.faces_list[i]
     
@@ -86,8 +86,8 @@ class DCEL:
             in_he:Half_Edge = None
             out_he:Half_Edge = None
 
-            in_side:Side
-            out_side:Side
+            in_side:Side = None
+            out_side:Side = None
 
             while True:
                 intersections_list = [Intersection(), Intersection()]
@@ -117,7 +117,7 @@ class DCEL:
                             in_side = intersections_list[0].side
                         
                         out_he = he
-                        in_side = intersections_list[1].side
+                        out_side = intersections_list[1].side
                         processed_half_edges_list.append(he)
                     else:
                         is_error = True
@@ -128,6 +128,9 @@ class DCEL:
                             he.destination = he.twin.origin
                         else:
                             he.destination = he.twin.origin
+                        out_he = he
+                        out_side = intersections_list[0].side
+                        processed_half_edges_list.append(he)
                     else:
                         is_error = True
                 elif not is_in and is_next_in:
@@ -138,7 +141,7 @@ class DCEL:
                         else:
                             he.origin = self.create_vertex(intersections_list[0].point)
                         
-                        if out_he is None:
+                        if out_he is not None:
                             self.link(box, out_he, out_side, he, intersections_list[0].side)
 
                         if in_he is None:
@@ -154,8 +157,9 @@ class DCEL:
 
                 if he is not site.face.outer_component:
                     break
+                # end of while loop
 
-            if out_messed_up and in_he is not None:
+            if out_messed_up and in_he is not None and out_he is not None:
                 self.link(box, out_he, out_side, in_he, in_side)   
             if out_messed_up:
                 site.face.outer_component= in_he
@@ -167,7 +171,7 @@ class DCEL:
     
     def link(self, box:Box, start:Half_Edge, start_side:Side, end:Half_Edge, end_side:Side):
         he:Half_Edge = start
-        side:Side = start_side
+        side:Side = start_side or Side.TOP
 
         while not (side == end_side.value):
             side = Side((side.value + 1) % 4)

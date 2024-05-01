@@ -20,7 +20,7 @@ def point_converter_out(x, y):
     """ Convert the points given in the txt to valid points on the screen.
         Also have (0,0) be in the center
     """
-    return (x * 50) + 25, (y * 50) + 25
+    return (x * 50) - 25, (y * 50) - 25
 
 
 def draw_line(p1:Point, p2:Point, color):
@@ -63,9 +63,6 @@ def draw_edges(dcel:DCEL.DCEL):
             if half_edge is start:
                 break
 
-        
-
-
 def draw_point(v, color, size=5):
     """Draw a point using OpenGL
     """
@@ -84,43 +81,54 @@ def draw_point(v, color, size=5):
 
 def write_vertices(f, dcel):
     for v in dcel.vertices_list:
-        f.write("v{} ({}, {})".format(v.index + 1, v.point.x, v.point.y))
+        x, y = point_converter_out(v.point.x, v.point.y)
+        f.write("v{} ({}, {})".format(v.index , x, y))
         
         for e in v.incident_edges_list:
-            f.write(" e{},{}".format(e.origin.index + 1, e.destination.index + 1))
+            f.write(" e{},{}".format(e.origin.index , e.destination.index ))
     
         f.write("\n")
     f.write("\n")
 
 def write_faces(f, dcel):
     for face in dcel.faces_list:
-        f.write("v{}".format(face.index + 1))
+        f.write("v{}".format(face.index ))
         
         if face.outer_component == None:
             f.write(" nil")
         else:
-            f.write(" e{},{}".format(face.outer_component.origin.index + 1,
-                                        face.outer_component.destination.index + 1))
+            f.write(" e{},{}".format(face.outer_component.origin.index ,
+                                        face.outer_component.destination.index ))
 
         if face.inner_component == None:
             f.write(" nil")
         else:
-            f.write(" e{},{}".format(face.inner_component.origin.index + 1,
-                                        face.inner_component.destination.index + 1))
+            f.write(" e{},{}".format(face.inner_component.origin.index ,
+                                        face.inner_component.destination.index ))
     
         f.write("\n")
     f.write("\n")
 
 def write_half_edges(f, dcel):
     for e in dcel.half_edges_list:
-        f.write("e{},{}".format(e.origin.index + 1, e.destination.index + 1))
-        f.write(" v{}".format(e.origin.index + 1))
-        f.write(" e{},{}".format(e.twin.origin.index + 1, e.twin.destination.index + 1))
-        f.write(" f{}".format(e.face.index + 1))
-        f.write(" e{},{}".format(e.next.origin.index + 1, e.next.destination.index + 1))
-        f.write(" e{},{}".format(e.prev.origin.index + 1, e.prev.destination.index + 1))
+        
+        # f.write("e{},{}".format(e.origin.index , e.destination.index ))
+        check_half_edge_and_write(f, e)
 
+        f.write(" v{}".format(e.origin.index))
+        # f.write(" e{},{}".format(e.twin.origin.index , e.twin.destination.index ))
+        f.write(" f{}".format(e.face.index ))
+        check_half_edge_and_write(f, e.next)
+        # f.write(" e{},{}".format(e.next.origin.index , e.next.destination.index ))
+        check_half_edge_and_write(f, e.prev)
+        # f.write(" e{},{}".format(e.prev.origin.index , e.prev.destination.index ))
         f.write("\n")
+
+def check_half_edge_and_write(f, e:DCEL.Half_Edge):
+    if e is None:
+        f.write(" nil")
+    else:
+        f.write(" e{},{}".format(e.origin.index, e.destination.index))
 
 if __name__ == '__main__':
     
@@ -130,10 +138,9 @@ if __name__ == '__main__':
 
     if in_file_path == '':
         for i in range(random.randint(3, 20)):
-            x = random.randint(-23, 23)
-            y = random.randint(-14, 14)
+            x = random.uniform(0.0, 1.0)
+            y = random.uniform(0.0, 1.0)
 
-            # x, y = point_convert_in(x, y)
             voronoi_dcel.create_site(x, y, site_index)
             delaunay_dcel.create_vertex(Point(x, y), site_index)
 
@@ -145,7 +152,7 @@ if __name__ == '__main__':
                 line = line.replace('(', '').replace(')', '').replace(',', '').split()
                 
                 for i in range(0, len(line), 2):
-                    x, y = map(int, line[i:i+2])
+                    x, y = map(float, line[i:i+2])
 
                     x, y = point_convert_in(x, y)
                     voronoi_dcel.create_site(x, y, site_index)
@@ -155,7 +162,7 @@ if __name__ == '__main__':
 
     voronoi_diagram = fortune.Voronoi_Diagram(voronoi_dcel)
     voronoi_diagram.fortune_algorithm()
-    voronoi_diagram.bound_box(Box(0.0, 0.0, 1.05, 1.05))
+    voronoi_diagram.bound_box(Box(-0.05, -0.05, 1.05, 1.05))
     voronoi_dcel.box_intersect(Box(0.0, 0.0, 1.0, 1.0))
     
     # TODO function call to generate Delaunay Triangulation
@@ -173,6 +180,8 @@ if __name__ == '__main__':
         write_vertices(f, delaunay_dcel)
         write_faces(f, delaunay_dcel)
         write_half_edges(f, delaunay_dcel)
+
+    # diamond, sqaure, vertical, horizontal, diagonal
 
 
     pygame.init()

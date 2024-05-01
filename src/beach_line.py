@@ -69,9 +69,15 @@ class BeachLine:
         x2 = pt2.x
         y2 = pt2.y
 
+        if y1 == l: y1 += epsilon
+        if y2 == l: y2 += epsilon
+
         d1 = 1.0 / (2.0 * (y1 - l))
         d2 = 1.0 / (2.0 * (y2 - l))
         a = d1 - d2
+
+        if a == 0.0: a = epsilon
+
         b = 2.0 * ((x2 * d2) - (x1 * d1))
         c = (((y1**2) + (x1**2) - (l**2)) * d1) - (((y2**2) + (x2**2) - (l**2)) * d2)
         delta = b * b - 4.0 * a * c

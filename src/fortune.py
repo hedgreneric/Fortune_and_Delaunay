@@ -10,9 +10,11 @@ from box import Side
 import math as m
 from enum import Enum
 from typing import List, Dict
+import sys
 
 bl = BL.BeachLine()
 event_queue = IndexedSortedList(key=lambda e: (-e.point.y, e.point.x))
+epsilon:float = sys.float_info.epsilon
 
 class Type(Enum):
     SITE = 1
@@ -202,6 +204,10 @@ class Voronoi_Diagram:
     def get_convergence_point(self, pt1:Point, pt2:Point, pt3:Point):
         v1:Point = (pt1 - pt2).get_orthogonal()
         v2:Point = (pt2 - pt3).get_orthogonal()
+
+        if v1.x == v2.x: v1.x += epsilon
+        if v1.y == v1.y: v1.y += epsilon
+ 
         delta:Point = 0.5 * (pt3 - pt1)
         t:float = delta.get_det(v2) / v1.get_det(v2)
         center:Point = 0.5 * (pt1 + pt2) + (t * v1)
