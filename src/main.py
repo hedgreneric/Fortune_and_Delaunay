@@ -1,6 +1,7 @@
 import dcel as DCEL
 from point import Point
 import fortune
+from box import Box
 
 import pygame
 from pygame.locals import *
@@ -30,7 +31,7 @@ def point_converter_out(x, y):
     return (((x - point_range_x - 1) * point_multiplier) + x_shift), (((y - point_range_y - 1) * point_multiplier) + y_shift)
 
 
-def draw_line(v1, v2, color):
+def draw_line(p1:Point, p2:Point, color):
     """ Draw a line using OpenGL
     """
     if color == "R":
@@ -43,13 +44,35 @@ def draw_line(v1, v2, color):
         glColor3f(1.0, 1.0, 1.0)
 
     glBegin(GL_LINES)
-    x, y = point_converter_out(v1.point.x, v1.point.y)
+    x, y = point_converter_out(p1.x, p1.y)
     glVertex2f(x, y)
 
-    x, y = point_converter_out(v2.point.x, v2.point.y)
-
+    x, y = point_converter_out(p2.x, p2.y)
     glVertex2f(x, y)
     glEnd()
+
+def draw_edges(dcel:DCEL.DCEL):
+    for site in dcel.sites_list:
+        center = site.point
+        face = site.face
+        half_edge = face.outer_component
+        if half_edge is None:
+            continue
+        while half_edge.prev is not None:
+            half_edge = half_edge.prev
+            if half_edge is face.outer_component:
+                break
+        start = half_edge
+        while half_edge is not None:
+            if half_edge.origin is not None and half_edge.destination is not None:
+                origin = half_edge.origin.point
+                destination = half_edge.destination.point
+                draw_line(origin, destination, "R")
+            half_edge = half_edge.next
+            if half_edge is start:
+                break
+
+        
 
 
 def draw_point(v, color, size=5):
@@ -72,41 +95,41 @@ def draw_point(v, color, size=5):
 
 def write_vertices(f, dcel):
     for v in dcel.vertices_list:
-        f.write("v{} ({}, {})".format(v.index, v.point.x, v.point.y))
+        f.write("v{} ({}, {})".format(v.index + 1, v.point.x, v.point.y))
         
         for e in v.incident_edges_list:
-            f.write(" e{},{}".format(e.origin.index, e.destination.index))
+            f.write(" e{},{}".format(e.origin.index + 1, e.destination.index + 1))
     
         f.write("\n")
     f.write("\n")
 
 def write_faces(f, dcel):
     for face in dcel.faces_list:
-        f.write("v{}".format(face.index))
+        f.write("v{}".format(face.index + 1))
         
         if face.outer_component == None:
             f.write(" nil")
         else:
-            f.write(" e{},{}".format(face.outer_component.origin.index,
-                                        face.outer_component.destination.index))
+            f.write(" e{},{}".format(face.outer_component.origin.index + 1,
+                                        face.outer_component.destination.index + 1))
 
         if face.inner_component == None:
             f.write(" nil")
         else:
-            f.write(" e{},{}".format(face.inner_component.origin.index,
-                                        face.inner_component.destination.index))
+            f.write(" e{},{}".format(face.inner_component.origin.index + 1,
+                                        face.inner_component.destination.index + 1))
     
         f.write("\n")
     f.write("\n")
 
 def write_half_edges(f, dcel):
     for e in dcel.half_edges_list:
-        f.write("e{},{}".format(e.origin.index, e.destination.index))
-        f.write(" v{}".format(e.origin.index))
-        f.write(" e{},{}".format(e.twin.origin.index, e.twin.destination.index))
-        f.write(" f{}".format(e.face.index))
-        f.write(" e{},{}".format(e.next.origin.index, e.next.destination.index))
-        f.write(" e{},{}".format(e.prev.origin.index, e.prev.destination.index))
+        f.write("e{},{}".format(e.origin.index + 1, e.destination.index + 1))
+        f.write(" v{}".format(e.origin.index + 1))
+        f.write(" e{},{}".format(e.twin.origin.index + 1, e.twin.destination.index + 1))
+        f.write(" f{}".format(e.face.index + 1))
+        f.write(" e{},{}".format(e.next.origin.index + 1, e.next.destination.index + 1))
+        f.write(" e{},{}".format(e.prev.origin.index + 1, e.prev.destination.index + 1))
 
         f.write("\n")
 
@@ -114,14 +137,14 @@ if __name__ == '__main__':
     
     in_file_path = input("Enter input file path: ")
     
-    site_index = 1
+    site_index = 0
 
     if in_file_path == '':
         for i in range(random.randint(3, 20)):
             x = random.randint(-23, 23)
             y = random.randint(-14, 14)
 
-            x, y = point_convert_in(x, y)
+            # x, y = point_convert_in(x, y)
             voronoi_dcel.create_site(x, y, site_index)
             delaunay_dcel.create_vertex(Point(x, y), site_index)
 
@@ -143,6 +166,7 @@ if __name__ == '__main__':
 
     voronoi_diagram = fortune.Voronoi_Diagram(voronoi_dcel)
     voronoi_diagram.fortune_algorithm()
+    voronoi_diagram.bound_box(Box(-0.05, -0.05, 1.05, 1.05))
     
     # TODO function call to generate Delaunay Triangulation
 
@@ -185,17 +209,18 @@ if __name__ == '__main__':
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # Draw red lines and points
-        for e in voronoi_dcel.half_edges_list:
-            draw_line(e.origin, e.destination, "R")
+        # for e in voronoi_dcel.half_edges_list:
+        #     draw_line(e.origin, e.destination, "R")
+        draw_edges(voronoi_dcel)
 
-        for v in voronoi_dcel.vertices_list:
-            draw_point(v, "R")
+        # for v in voronoi_dcel.vertices_list:
+        #     draw_point(v, "R")
 
         for s in voronoi_dcel.sites_list:
             draw_point(s, "G")
 
-        for e in delaunay_dcel.half_edges_list:
-            draw_line(e.origin, e.destination, "B")
+        # for e in delaunay_dcel.half_edges_list:
+        #     draw_line(e.origin, e.destination, "B")
             
         # Swap buffers to show the drawn objects
         pygame.display.flip()

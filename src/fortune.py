@@ -3,10 +3,13 @@ from point import Point
 import beach_line as BL
 from priority_queue import IndexedSortedList
 from box import Box
+from box import Intersection
+from box import Side
 
 
 import math as m
 from enum import Enum
+from typing import List, Dict
 
 bl = BL.BeachLine()
 event_queue = IndexedSortedList(key=lambda e: (-e.point.y, e.point.x))
@@ -45,14 +48,13 @@ class Event:
     
 class Linked_Vertex:
     def __init__(self, prev_half_edge = DCEL.Half_Edge(), vertex = DCEL.Vertex(), next_half_edge = DCEL.Half_Edge):
-        prev_half_edge:DCEL.Half_Edge = prev_half_edge
-        vertex:DCEL.Vertex = vertex
-        next_half_edge:DCEL.Half_Edge = next_half_edge
+        self.prev_half_edge:DCEL.Half_Edge = prev_half_edge
+        self.vertex:DCEL.Vertex = vertex
+        self.next_half_edge:DCEL.Half_Edge = next_half_edge
     
 class Voronoi_Diagram:
     def __init__(self, dcel:DCEL.DCEL):
         self.dcel = dcel
-
 
     def fortune_algorithm(self):
         if self.dcel is None: raise ValueError("Invalid arguments for Fortune Algorithm")
@@ -61,7 +63,7 @@ class Voronoi_Diagram:
             event_queue.add(Event(site))
 
         while len(event_queue) != 0:
-            e = event_queue.pop(0)
+            e:Event = event_queue.pop(0)
             bl.beach_line_y = e.y
             if e.type is Type.SITE:
                 self.handle_site_event(e)
@@ -238,8 +240,72 @@ class Voronoi_Diagram:
             box.top = min(v.point.y, box.top)
 
         linked_vertices_list:list[Linked_Vertex] = []
-        # TODO add vertices map
+        vertices_dict = {i: [Linked_Vertex() for _ in range(8)] for i in range(len(self.dcel.sites_list))}
+
+        # get all unbounded half_edges
+        if not bl.is_empty():
+            left_arc = bl.get_left_most_arc()
+            right_arc = left_arc.next
+
+            while not bl.is_none(right_arc):
+                dir:Point = (left_arc.site.point - right_arc.site.point).get_orthogonal()
+                origin:Point = (left_arc.site.point + right_arc.site.point) * 0.5
+
+                intersection:Intersection = box.get_first_intersection(origin, dir)
+
+                vertex:DCEL.Vertex = self.dcel.create_vertex(intersection.point)
+                self.set_destination(left_arc, right_arc, vertex)
+                
+                if left_arc.site.index in vertices_dict.keys():
+                    vertices_dict[left_arc.site.index] = [None] * len(vertices_dict[left_arc.site.index])
+
+                if right_arc.site.index in vertices_dict.keys():
+                    vertices_dict[right_arc.site.index] = [None] * len(vertices_dict[right_arc.site.index])
+
+                linked_vertices_list.append(Linked_Vertex(vertex=vertex, next_half_edge=left_arc.right_half_edge))
+                vertices_dict[left_arc.site.index][2 * intersection.side.value] = linked_vertices_list[-1]
+
+                linked_vertices_list.append(Linked_Vertex(prev_half_edge=right_arc.left_half_edge, vertex=vertex))
+                vertices_dict[right_arc.site.index][2 * intersection.side.value] = linked_vertices_list[-1]
+
+                left_arc = right_arc
+                right_arc = right_arc.next
+            
+        # add corners
+        for key, cell_vertices in vertices_dict.items():
+            for i in range(5):
+                side:Side = Side(i % 4)
+                next_side:Side = Side((side.value + 1) % 4)
+
+                if cell_vertices[2 * side.value] is None and cell_vertices[2 * side.value + 1] is None:
+                    prev_side = Side((side.value + 3) % 4)
+                    corner:DCEL.Vertex = self.dcel.create_corner(box, side)
+                    linked_vertices_list.append(Linked_Vertex(vertex=corner))
+                    cell_vertices[2 * prev_side.value + 1] = linked_vertices_list[-1]
+                    cell_vertices[2 * side.value] = linked_vertices_list[-1]
+                elif cell_vertices[2 * side.value] is not None and cell_vertices[2 * side.value + 1] is None:
+                    corner:DCEL.Vertex = self.dcel.create_corner(box, next_side)
+                    linked_vertices_list.append(Linked_Vertex(vertex=corner))
+                    cell_vertices[2 * side.value + 1] = linked_vertices_list[-1]
+                    cell_vertices[2 * next_side.value] = linked_vertices_list[-1]
         
-        # if not bl.is_empty():
-        #     left_arc = 
+        for key, cell_vertices in vertices_dict.items():
+            i:int = key
+            
+            for side_num in range(4):
+                if cell_vertices[2 * side.value] is not None:
+                    he:DCEL.Half_Edge = self.dcel.create_half_edge(self.dcel.get_face(i))
+                    he.origin = cell_vertices[2 * side.value].vertex
+                    he.destination = cell_vertices[2 * side.value + 1].vertex
+                    cell_vertices[2 * side.value].next_half_edge = he
+                    he.prev = cell_vertices[2 * side.value].prev_half_edge
+                    if cell_vertices[2 * side.value].prev_half_edge is not None:
+                        cell_vertices[2 * side.value].prev_half_edge.next = he
+                    cell_vertices[2 * side.value + 1].prev_half_edge = he
+                    he.next = cell_vertices[2 * side.value + 1].next_half_edge
+                    if cell_vertices[2 * side.value + 1].next_half_edge is not None:
+                        cell_vertices[2 * side.value + 1].next_half_edge.prev = he
+        
+        return True
+
 

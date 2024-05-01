@@ -1,6 +1,8 @@
 import math as m
 from point import Point
 from box import Box
+from box import Side
+from box import Intersection
 
 class Vertex:
     def __init__(self, point=None, index=None):
@@ -26,7 +28,7 @@ class Face:
 
 class Site:
     def __init__(self, point=None, index=None, face=None):
-        self.index:int = index or -1
+        self.index:int = index or 0
         self.point:Point = point or Point()
         self.face:Face = face
 
@@ -49,11 +51,11 @@ class DCEL:
         half_edge.face = face
 
         self.half_edges_list.append(half_edge)
-
+        
         if face.outer_component is None:
-            face.outer_component = half_edge
+            face.outer_component = self.half_edges_list[-1]
 
-        return half_edge
+        return self.half_edges_list[-1]
     
     def create_face(self, index):
         face = Face(index)
@@ -68,6 +70,9 @@ class DCEL:
         self.sites_list.append(site)
         return site
     
+    def get_face(self, i:int):
+        return self.faces_list[i]
+    
     def box_intersect(self, box:Box):
         is_error:bool = False
         processed_half_edges_list:list[Half_Edge] = []
@@ -81,11 +86,11 @@ class DCEL:
             in_he:Half_Edge = None
             out_he:Half_Edge = None
 
-            in_side:Box.Side
-            out_side:Box.Side
+            in_side:Side
+            out_side:Side
 
             while True:
-                intersections_list = [Box.Intersection(), Box.Intersection()]
+                intersections_list = [Intersection(), Intersection()]
 
                 num_intersections:int = box.get_intersections(he.origin.point, he.destination.point, intersections_list)
                 is_next_in:bool = box.contains(he.destination.point)
@@ -161,12 +166,12 @@ class DCEL:
 
         return not is_error  
     
-    def link(self, box:Box, start:Half_Edge, start_side:Box.Side, end:Half_Edge, end_side:Box.Side):
+    def link(self, box:Box, start:Half_Edge, start_side:Side, end:Half_Edge, end_side:Side):
         he:Half_Edge = start
-        side:Box.Side = start_side
+        side:Side = start_side
 
         while not (side == end_side.value):
-            side = Box.Side((side.value + 1) % 4)
+            side = Side((side.value + 1) % 4)
             he.next = self.create_half_edge(start.face)
             he.next.prev = he
             he.next.origin = he.destination
@@ -180,12 +185,12 @@ class DCEL:
         he.next.origin = he.destination
         he.next.destination = end.origin
 
-    def create_corner(self, box:Box, side:Box.Side):
-        if side == box.LEFT:
+    def create_corner(self, box:Box, side:Side):
+        if side == Side.LEFT:
             return self.create_vertex(Point(box.left, box.top))
-        elif side == box.BOTTOM:
+        elif side == Side.BOTTOM:
             return self.create_vertex(Point(box.left, box.bottom))
-        elif side == box.RIGHT:
+        elif side == Side.RIGHT:
             return self.create_vertex(Point(box.right, box.bottom))
         else:
             return self.create_vertex(Point(box.right, box.top))

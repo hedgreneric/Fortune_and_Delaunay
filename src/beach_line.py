@@ -69,10 +69,6 @@ class BeachLine:
         x2 = pt2.x
         y2 = pt2.y
 
-        if y1 == l: y1 += epsilon
-        if y2 == l: y2 += epsilon
-        if y1 == y2: y1 += epsilon
-
         d1 = 1.0 / (2.0 * (y1 - l))
         d2 = 1.0 / (2.0 * (y2 - l))
         a = d1 - d2
