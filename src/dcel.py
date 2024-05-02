@@ -18,6 +18,7 @@ class Half_Edge:
         self.twin:Half_Edge = None
         self.next:Half_Edge = None
         self.face:Face = Face()
+        self.tri_processed = False
 
 class Face:
     def __init__(self, index=-1, outer_component=None, inner_component=None, site=None):
